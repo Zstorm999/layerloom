@@ -2,7 +2,7 @@
 
 LayerLoom is an iteration of my previous work of summer 2022 [tilemap editor](https://github.com/Zstorm999/tilemap_editor). 
 
-LayerLoom allows you to create easily via a simple and intuitive GUI a layer and entities map for 2D games such that can be found in the GBA or SNES era (Zelda - style). 
+LayerLoom allows you to create easily via a simple and intuitive GUI a layer and entity map for 2D games such that can be found in the GBA or SNES era (Zelda-style). 
 
 It consists of an editor to easily edit the different layers of the map, and an exporter/library to import the map directly into your rust project (that can directly be used in the `build.rs` file).
 
@@ -14,7 +14,7 @@ It consists of an editor to easily edit the different layers of the map, and an 
 - [ ] entity layers
 - [ ] library for easy import into your Rust project
 
-This is the baseline at the start of the projects. Other features I would like to add include :
+This is the baseline at the start of the project. Other features I would like to add include :
 - ability to generate entities and tile types directly from the UI and export them to your project easily (direct generation of rust files)
 - ready to use templates for GBA, SNES, NES…
 
