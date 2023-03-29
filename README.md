@@ -6,6 +6,10 @@ LayerLoom allows you to create easily via a simple and intuitive GUI a layer and
 
 It consists of an editor to easily edit the different layers of the map, and an exporter/library to import the map directly into your rust project (that can directly be used in the `build.rs` file).
 
+## How to install
+
+For now the project is still in a very early stage, so there is no official release. If you wish to try it anyway, feel free to clone the repo and build it with cargo. It should build fine on windows and linux (support for macOS is not planned but as I rely on libraries that do support it that should be fine).
+
 ## Roadmap 
 
 - [ ] general app layout and ui
@@ -28,6 +32,5 @@ The old [tilemap editor](https://github.com/Zstorm999/tilemap_editor) project is
 - the architecture is a bit messy and not very well separated (view/model)
 - I find the `Iced` library a bit limited at the moment
 
-To expand on the last point, `Iced` is a fantastic library, and I definitely intend to use it on other projects. However at this time, I find it not mature enough to support this project, mostly because of the lack of menu widget that makes it kinda messy to build clean toolbars.    
-I would also like to try other libraries, and `Druid` was suggested to me and seems similar enough to `Iced` to give it a worthy try.    
-I’m aware that `Druid` is "deprecated" but its successor `Xilem` feels right now (Jan. 2023) still much of an experiment than a finished product.
+To expand on the last point, `Iced` is a fantastic library, and I definitely intend to use it on other projects. However at this time, I find it not mature enough to support this project, mostly because of its lack of widgets (I miss popup windows), and the styling mechanic is a bit off for me at the moment.    
+I would also like to try other libraries, I tried `Druid` but it just didn’t click for me. So we’re going for `egui` with `eframe` instead !
