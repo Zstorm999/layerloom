@@ -12,7 +12,7 @@ For now the project is still in a very early stage, so there is no official rele
 
 ## Roadmap 
 
-- [ ] general app layout and ui
+- [X] general app layout and ui
 - [ ] single layer drawing and sprites import
 - [ ] multiple layers
 - [ ] entity layers
