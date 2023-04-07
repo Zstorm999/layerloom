@@ -1,8 +1,13 @@
 use eframe::egui;
 use egui::{Align, Context, Layout, Separator, Ui};
-use model::Model;
+use model::{
+    tileset::{dummy_tileset::DummyTileset, Tileset},
+    Model,
+};
+use widgets::TilesetWidget;
 
 mod model;
+mod widgets;
 
 fn main() -> Result<(), eframe::Error> {
     let options = eframe::NativeOptions {
@@ -19,12 +24,16 @@ fn main() -> Result<(), eframe::Error> {
 
 struct MyApp {
     model: Model,
+    tileset_widget: TilesetWidget,
+    tileset: Box<dyn Tileset>,
 }
 
 impl Default for MyApp {
     fn default() -> Self {
         Self {
             model: Model::default(),
+            tileset_widget: TilesetWidget::new(5.0),
+            tileset: Box::new(DummyTileset::default()),
         }
     }
 }
@@ -75,6 +84,8 @@ impl MyApp {
     fn tileset(&mut self, ui: &mut Ui, _frame: &mut eframe::Frame) {
         if self.model.is_tileset_loaded() {
             // display tileset
+
+            self.tileset_widget.show(ui, &self.tileset);
         } else {
             ui.label("No tileset loaded");
         }
@@ -94,6 +105,6 @@ impl MyApp {
     fn layers_panel(&mut self, _ui: &mut Ui, _frame: &mut eframe::Frame) {}
 
     fn tilmap(&mut self, _ui: &mut Ui, _frame: &mut eframe::Frame) {
-        // draw the tilemap widget
+        // draw tilemap
     }
 }
