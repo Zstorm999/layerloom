@@ -1,5 +1,5 @@
 use eframe::egui;
-use egui::{Align, Context, Layout, Separator, Ui};
+use egui::{Align, Context, Layout, Ui};
 use model::{
     tileset::{dummy_tileset::DummyTileset, Tileset},
     Model,

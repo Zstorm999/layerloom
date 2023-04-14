@@ -17,11 +17,15 @@ use egui::Rgba;
 /// }
 /// ```
 pub trait Tileset {
+    /// Size of a tile (width or height)
+    fn tile_size(&self) -> u16;
+    /// Number of tiles
     fn len(&self) -> usize;
+    /// Retrieve a specific tile
     fn get(&self, tile_id: usize) -> &Tile;
 }
 
-impl dyn Tileset {
+impl<'a> dyn Tileset + 'a {
     pub fn iter(&self) -> TilesetIterator {
         TilesetIterator::new(self)
     }
@@ -65,33 +69,28 @@ impl<'a> Iterator for TilesetIterator<'a> {
 }
 
 pub struct Tile {
-    width: u16,
-    height: u16,
+    size: u16,
     content: Vec<Rgba>,
 }
 
 impl Tile {
-    pub fn new(width: u16, height: u16, content: Vec<Rgba>) -> Self {
-        Self {
-            width,
-            height,
-            content,
-        }
+    pub fn new(size: u16, content: Vec<Rgba>) -> Self {
+        Self { size, content }
     }
 
-    pub fn size(&self) -> (u16, u16) {
-        (self.width, self.height)
+    pub fn size(&self) -> u16 {
+        self.size
     }
 
     pub fn get(&self, x: u16, y: u16) -> &Rgba {
-        if x > self.width {
+        if x > self.size {
             panic!("x position larger than width")
         }
-        if y > self.height {
+        if y > self.size {
             panic!("y position larger than height")
         }
 
-        &self.content[(x + self.width * y) as usize]
+        &self.content[(x + self.size * y) as usize]
     }
 }
 

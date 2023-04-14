@@ -29,6 +29,10 @@ impl Default for DummyTileset {
 }
 
 impl Tileset for DummyTileset {
+    fn tile_size(&self) -> u16 {
+        8
+    }
+
     fn len(&self) -> usize {
         self.tiles.len()
     }
@@ -40,7 +44,6 @@ impl Tileset for DummyTileset {
 
 fn new_tile(r: f32, g: f32, b: f32) -> Tile {
     Tile::new(
-        8,
         8,
         vec![Rgba::from_rgb(r, g, b)]
             .into_iter()

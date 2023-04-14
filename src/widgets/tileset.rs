@@ -1,32 +1,47 @@
-use eframe::epaint::RectShape;
-use egui::{emath, epaint, pos2, vec2, Frame, Pos2, Rect, Rounding, Shape, Ui, Vec2};
+use egui::{vec2, Frame, Pos2, Rect, Sense, Ui, Vec2};
 
-use crate::model::tileset::{Tile, Tileset};
+use super::tile::get_tile_shapes;
+use crate::model::tileset::Tileset;
 
 pub struct TilesetWidget {
     size_factor: f32,
+    selected_tile: Option<usize>,
 }
 
 impl Default for TilesetWidget {
     fn default() -> Self {
-        TilesetWidget { size_factor: 1.0 }
+        TilesetWidget {
+            size_factor: 1.0,
+            selected_tile: None,
+        }
     }
 }
 
 impl TilesetWidget {
     /// creates a new widget
     pub fn new(size_factor: f32) -> Self {
-        Self { size_factor }
+        Self {
+            size_factor,
+            selected_tile: None,
+        }
     }
 
     /// display the widget with the specified tileset
     pub fn show(&mut self, ui: &mut Ui, tileset: &Box<dyn Tileset>) {
-        Frame::canvas(ui.style()).show(ui, |ui| self.show_tiles(ui, tileset));
+        /*ui.with_layout(Layout::top_down(Align::Center), |ui| {
+            //self.show_tiles(ui, tileset)
+
+        });*/
+
+        Frame::canvas(ui.style()).show(ui, |ui| {
+            let max_size = self.show_tiles(ui, tileset);
+            ui.set_max_size(max_size);
+        });
     }
 
-    fn show_tiles(&mut self, ui: &mut Ui, tileset: &Box<dyn Tileset>) {
+    fn show_tiles(&mut self, ui: &mut Ui, tileset: &Box<dyn Tileset>) -> Vec2 {
         if tileset.len() == 0 {
-            return;
+            return Vec2::ZERO;
             // early return since the code will fail
         }
 
@@ -34,77 +49,83 @@ impl TilesetWidget {
         let tileset = tileset.as_ref();
 
         let widget_width = ui.available_width();
-        let base_position = ui.next_widget_position();
+        let tile_draw_width = tileset.tile_size() as f32 * self.size_factor;
+        let desired_size = needed_size(tile_draw_width, widget_width, tileset.len());
 
-        let first_tile_size = tileset[0].size();
-        let min_size = pos2(
-            first_tile_size.0 as f32 * self.size_factor,
-            first_tile_size.1 as f32 * self.size_factor,
-        );
+        let base_position = ui.next_widget_position(); //- vec2(widget_width / 2.0, 0.0);
+        let base_position = base_position.floor();
 
-        let (positions, max_positions): (Vec<_>, Vec<_>) = tileset
-            .iter()
-            .scan((base_position, min_size), |(pos, max_pos), tile| {
-                let (width, height) = tile.size();
-
-                let new_max_width = pos.x + width as f32 * self.size_factor;
-
-                if new_max_width - base_position.x > widget_width {
-                    // this tile does not fit, jump to next line
-                    pos.y += height as f32 * self.size_factor;
-                    // reset x
-                    pos.x = base_position.x;
-                    // also this becomes the new maximum y
-                    max_pos.y = pos.y + height as f32 * self.size_factor;
-                }
-
-                // this is a valid position for our tile
-                let draw_position = *pos;
-
-                // increment the position
-                pos.x += width as f32 * self.size_factor;
-                if pos.x > max_pos.x {
-                    // update max if needed
-                    max_pos.x = pos.x;
-                }
-
-                Some((draw_position, *max_pos))
-            })
-            .unzip();
-
-        let max_position = max_positions.last().unwrap().to_vec2();
+        let positions: Vec<_> =
+            tile_positions(tileset.len(), tile_draw_width, base_position, widget_width).collect();
 
         let shapes = tileset
             .iter()
-            .zip(positions)
-            .flat_map(|(tile, pos)| get_tile_shapes(tile, pos, self.size_factor));
+            .zip(positions.iter())
+            .flat_map(|(tile, &pos)| get_tile_shapes(tile, pos, self.size_factor));
 
-        println!("{:?}", widget_width);
-        println!("{:?}", max_position);
+        let (id, rect) = ui.allocate_space(desired_size);
 
-        let (_id, _rect) = ui.allocate_space(max_position);
+        let click_response = ui.interact(rect, id, Sense::click());
+        if click_response.clicked() {
+            // primary button click
+            let click_position = click_response.hover_pos().unwrap();
+
+            if let Some(tile_id) = positions.iter().position(|&pos| {
+                Rect::from_min_size(pos, Vec2::splat(tile_draw_width)).contains(click_position)
+            }) {
+                self.selected_tile = Some(tile_id);
+                println!("{}", tile_id);
+            }
+        }
+        if click_response.secondary_clicked() {
+            println!("right click")
+        }
+
         ui.painter().extend(shapes);
+
+        return desired_size;
     }
 }
 
-fn get_tile_shapes(tile: &Tile, position: Pos2, size_factor: f32) -> Vec<Shape> {
-    let (width, height) = tile.size();
+fn tile_positions(
+    nb_tiles: usize,
+    draw_size: f32,
+    base_position: Pos2,
+    max_width: f32,
+) -> impl Iterator<Item = Pos2> {
+    (0..nb_tiles)
+        .into_iter()
+        .scan(base_position, move |pos, _| {
+            let new_max_width = pos.x + draw_size;
 
-    let mut shapes = vec![];
+            if new_max_width - base_position.x > max_width {
+                // this tile does not fit, jump to next line
+                pos.y += draw_size;
+                // reset x
+                pos.x = base_position.x;
+            }
 
-    let square_size = Vec2::splat(size_factor);
+            // this is a valid position for our tile
+            let draw_position = *pos;
 
-    for x in 0..width {
-        for y in 0..height {
-            let rect_pos = position + vec2(x as f32 * size_factor, y as f32 * size_factor);
+            // increment the position
+            pos.x += draw_size;
+            pos.x = pos.x;
 
-            shapes.push(Shape::Rect(RectShape::filled(
-                Rect::from_min_size(rect_pos, square_size),
-                Rounding::none(),
-                tile[(x, y)],
-            )));
-        }
-    }
+            Some(draw_position)
+        })
+}
 
-    shapes
+fn needed_size(tile_size: f32, max_width: f32, nb_tiles: usize) -> Vec2 {
+    let nb_tiles = nb_tiles as f32;
+
+    // if the fit is perfect this is a noop
+    let tiles_per_line = f32::floor(max_width / tile_size);
+    let total_width = f32::min(tiles_per_line, nb_tiles) * tile_size;
+
+    let nb_lines = f32::ceil(nb_tiles / tiles_per_line);
+
+    let total_height = tile_size * nb_lines;
+
+    vec2(total_width, total_height)
 }
