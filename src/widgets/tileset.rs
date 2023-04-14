@@ -39,6 +39,11 @@ impl TilesetWidget {
         });
     }
 
+    /// get the current tile
+    pub fn get_selected(&self) -> Option<usize> {
+        self.selected_tile
+    }
+
     fn show_tiles(&mut self, ui: &mut Ui, tileset: &Box<dyn Tileset>) -> Vec2 {
         if tileset.len() == 0 {
             return Vec2::ZERO;
