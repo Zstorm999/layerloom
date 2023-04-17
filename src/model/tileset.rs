@@ -78,15 +78,16 @@ impl Tile {
         Self { size, content }
     }
 
+    // returns the size (width or height) of the tile
     pub fn size(&self) -> u16 {
         self.size
     }
 
     pub fn get(&self, x: u16, y: u16) -> &Rgba {
-        if x > self.size {
+        if x >= self.size {
             panic!("x position larger than width")
         }
-        if y > self.size {
+        if y >= self.size {
             panic!("y position larger than height")
         }
 
@@ -100,5 +101,60 @@ impl Index<(u16, u16)> for Tile {
     #[inline]
     fn index(&self, index: (u16, u16)) -> &Self::Output {
         self.get(index.0, index.1)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+
+    mod tile {
+
+        use super::super::*;
+
+        #[test]
+        fn get_position() {
+            let tile = Tile::new(2, vec![Rgba::GREEN, Rgba::BLUE, Rgba::RED, Rgba::BLACK]);
+
+            let pixel = tile[(0, 0)];
+            assert_eq!(Rgba::GREEN, pixel);
+            let pixel = tile[(1, 0)];
+            assert_eq!(Rgba::BLUE, pixel);
+            let pixel = tile[(0, 1)];
+            assert_eq!(Rgba::RED, pixel);
+            let pixel = tile[(1, 1)];
+            assert_eq!(Rgba::BLACK, pixel);
+        }
+
+        #[test]
+        fn get_is_the_same_as_index() {
+            let tile = Tile::new(2, vec![Rgba::GREEN, Rgba::BLUE, Rgba::RED, Rgba::BLACK]);
+
+            assert_eq!(tile[(0, 0)], *tile.get(0, 0));
+            assert_eq!(tile[(1, 0)], *tile.get(1, 0));
+            assert_eq!(tile[(0, 1)], *tile.get(0, 1));
+            assert_eq!(tile[(1, 1)], *tile.get(1, 1));
+        }
+
+        #[test]
+        #[should_panic(expected = "x position larger")]
+        fn x_too_large() {
+            let tile = Tile::new(2, vec![Rgba::GREEN, Rgba::BLUE, Rgba::RED, Rgba::BLACK]);
+
+            let _ = tile[(2, 0)];
+        }
+
+        #[test]
+        #[should_panic(expected = "y position larger")]
+        fn y_too_large() {
+            let tile = Tile::new(2, vec![Rgba::GREEN, Rgba::BLUE, Rgba::RED, Rgba::BLACK]);
+
+            let _ = tile[(0, 2)];
+        }
+
+        #[test]
+        fn size() {
+            let tile = Tile::new(2, vec![Rgba::GREEN, Rgba::BLUE, Rgba::RED, Rgba::BLACK]);
+            let _ = tile.size();
+        }
     }
 }
