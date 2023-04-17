@@ -1,3 +1,5 @@
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/zstorm999/layerloom/rust.yml)
+
 # LayerLoom
 
 LayerLoom is an iteration of my previous work of summer 2022 [tilemap editor](https://github.com/Zstorm999/tilemap_editor). 
