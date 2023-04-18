@@ -20,8 +20,8 @@ impl Default for DummyTileset {
             new_tile(1.0, 0.0, 1.0), // magenta
             new_tile(1.0, 1.0, 0.0), // yellow
             new_tile(0.0, 1.0, 1.0), // cyan
-            new_tile(0.0, 0.0, 0.0), // white
-            new_tile(1.0, 1.0, 1.0), // black
+            new_tile(0.0, 0.0, 0.0), // black
+            new_tile(1.0, 1.0, 1.0), // white
         ];
 
         Self { tiles }

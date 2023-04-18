@@ -98,27 +98,22 @@ fn tile_positions(
     base_position: Pos2,
     max_width: f32,
 ) -> impl Iterator<Item = Pos2> {
+    let tiles_per_line = f32::floor(max_width / draw_size as f32) as usize;
+
     (0..nb_tiles)
         .into_iter()
-        .scan(base_position, move |pos, _| {
-            let new_max_width = pos.x + draw_size;
+        .map(move |id| tile_position_relative(id, tiles_per_line, draw_size)) // compute relative position
+        .map(move |p| p + base_position.to_vec2()) // transform to global
+}
 
-            if new_max_width - base_position.x > max_width {
-                // this tile does not fit, jump to next line
-                pos.y += draw_size;
-                // reset x
-                pos.x = base_position.x;
-            }
+fn tile_position_relative(tile_id: usize, tiles_per_line: usize, draw_size: f32) -> Pos2 {
+    let y_offset = tile_id / tiles_per_line;
+    let x_offset = tile_id % tiles_per_line;
 
-            // this is a valid position for our tile
-            let draw_position = *pos;
-
-            // increment the position
-            pos.x += draw_size;
-            pos.x = pos.x;
-
-            Some(draw_position)
-        })
+    Pos2 {
+        x: draw_size * x_offset as f32,
+        y: draw_size * y_offset as f32,
+    }
 }
 
 fn needed_size(tile_size: f32, max_width: f32, nb_tiles: usize) -> Vec2 {
