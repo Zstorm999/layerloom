@@ -1,4 +1,5 @@
-use egui::{vec2, Frame, Pos2, Rect, Sense, Ui, Vec2};
+use eframe::epaint::RectShape;
+use egui::{vec2, Frame, Pos2, Rect, Rgba, Rounding, Sense, Shape, Stroke, Ui, Vec2};
 
 use super::tile::get_tile_shapes;
 use crate::model::tileset::Tileset;
@@ -60,33 +61,56 @@ impl TilesetWidget {
         let base_position = ui.next_widget_position(); //- vec2(widget_width / 2.0, 0.0);
         let base_position = base_position.floor();
 
+        // compute position of each tile
         let positions: Vec<_> =
             tile_positions(tileset.len(), tile_draw_width, base_position, widget_width).collect();
 
+        // compute shapes of each tile
         let shapes = tileset
             .iter()
             .zip(positions.iter())
             .flat_map(|(tile, &pos)| get_tile_shapes(tile, pos, self.size_factor));
 
+        // draw the tiles
+        ui.painter().extend(shapes);
+
+        // interaction rect
         let (id, rect) = ui.allocate_space(desired_size);
 
-        let click_response = ui.interact(rect, id, Sense::click());
-        if click_response.clicked() {
+        // clicks
+        let click_response = ui.interact(rect, id, Sense::click_and_drag());
+        if click_response.clicked() || click_response.drag_started_by(egui::PointerButton::Primary)
+        {
             // primary button click
             let click_position = click_response.hover_pos().unwrap();
 
+            // is the click on a tile ?
             if let Some(tile_id) = positions.iter().position(|&pos| {
                 Rect::from_min_size(pos, Vec2::splat(tile_draw_width)).contains(click_position)
             }) {
+                // select it
                 self.selected_tile = Some(tile_id);
-                println!("{}", tile_id);
             }
         }
         if click_response.secondary_clicked() {
-            println!("right click")
+            self.selected_tile = None;
         }
 
-        ui.painter().extend(shapes);
+        // draw the selected tile if it exists
+        if let Some(id) = self.selected_tile {
+            let tiles_per_line = f32::floor(widget_width / tile_draw_width as f32) as usize;
+
+            let select_pos = tile_position_relative(id, tiles_per_line, tile_draw_width)
+                + base_position.to_vec2();
+
+            let selection_rect = Shape::Rect(RectShape::stroke(
+                Rect::from_min_size(select_pos, Vec2::splat(tile_draw_width)),
+                Rounding::none(),
+                Stroke::new(3.0, Rgba::from_gray(0.3)),
+            ));
+
+            ui.painter().add(selection_rect);
+        }
 
         return desired_size;
     }
