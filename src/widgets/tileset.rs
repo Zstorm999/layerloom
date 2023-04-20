@@ -4,6 +4,7 @@ use egui::{vec2, Frame, Pos2, Rect, Rgba, Rounding, Sense, Shape, Stroke, Ui, Ve
 use super::tile::get_tile_shapes;
 use crate::model::tileset::Tileset;
 
+/// Widget to display a tileset
 pub struct TilesetWidget {
     size_factor: f32,
     selected_tile: Option<usize>,
@@ -98,24 +99,19 @@ impl TilesetWidget {
 
         // draw the selected tile if it exists
         if let Some(id) = self.selected_tile {
-            let tiles_per_line = f32::floor(widget_width / tile_draw_width as f32) as usize;
-
-            let select_pos = tile_position_relative(id, tiles_per_line, tile_draw_width)
-                + base_position.to_vec2();
-
-            let selection_rect = Shape::Rect(RectShape::stroke(
-                Rect::from_min_size(select_pos, Vec2::splat(tile_draw_width)),
-                Rounding::none(),
-                Stroke::new(3.0, Rgba::from_gray(0.3)),
+            ui.painter().add(selected_tile_shape(
+                id,
+                widget_width,
+                tile_draw_width as f32,
+                base_position,
             ));
-
-            ui.painter().add(selection_rect);
         }
 
         return desired_size;
     }
 }
 
+/// Compute absolute position for all the tiles
 fn tile_positions(
     nb_tiles: usize,
     draw_size: f32,
@@ -130,6 +126,7 @@ fn tile_positions(
         .map(move |p| p + base_position.to_vec2()) // transform to global
 }
 
+/// Compute tile position relative to the widget
 fn tile_position_relative(tile_id: usize, tiles_per_line: usize, draw_size: f32) -> Pos2 {
     let y_offset = tile_id / tiles_per_line;
     let x_offset = tile_id % tiles_per_line;
@@ -140,6 +137,7 @@ fn tile_position_relative(tile_id: usize, tiles_per_line: usize, draw_size: f32)
     }
 }
 
+/// Compute the total widget size needed for all the tiles
 fn needed_size(tile_size: f32, max_width: f32, nb_tiles: usize) -> Vec2 {
     let nb_tiles = nb_tiles as f32;
 
@@ -152,4 +150,23 @@ fn needed_size(tile_size: f32, max_width: f32, nb_tiles: usize) -> Vec2 {
     let total_height = tile_size * nb_lines;
 
     vec2(total_width, total_height)
+}
+
+/// Compute the shape for the selected tile
+fn selected_tile_shape(
+    id: usize,
+    widget_width: f32,
+    tile_draw_width: f32,
+    base_position: Pos2,
+) -> Shape {
+    let tiles_per_line = f32::floor(widget_width / tile_draw_width as f32) as usize;
+
+    let select_pos =
+        tile_position_relative(id, tiles_per_line, tile_draw_width) + base_position.to_vec2();
+
+    Shape::Rect(RectShape::stroke(
+        Rect::from_min_size(select_pos, Vec2::splat(tile_draw_width)),
+        Rounding::none(),
+        Stroke::new(3.0, Rgba::from_gray(0.3)),
+    ))
 }

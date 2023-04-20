@@ -3,6 +3,7 @@ use egui::{vec2, Pos2, Rect, Rounding, Shape, Vec2};
 
 use crate::model::tileset::Tile;
 
+/// Retrieve the shapes necessary to draw a tile (scaled pixels)
 pub fn get_tile_shapes(tile: &Tile, position: Pos2, size_factor: f32) -> Vec<Shape> {
     let tile_size = tile.size();
 
